@@ -20,18 +20,28 @@ ENV/
 .env.*
 !.env.example
 
-# Runtime Media Outputs (Video clips, downloaded YouTube source files, ZIPs)
-videoshorts/outputs/
+# Runtime Media Outputs & Created Shorts (NEVER COMMIT)
 outputs/
+videoshorts/outputs/
+**/outputs/**
+**/clips/**
+**/downloads/**
+**/uploads/**
 *.mp4
 *.mkv
 *.webm
 *.avi
 *.mov
+*.wmv
+*.flv
+*.m4v
+*.ts
 *.zip
+*.tar
+*.gz
 *.srt
-!videoshorts/tests/fixtures/*.srt
-!videoshorts/tests/fixtures/*.mp4
+*.vtt
+*.ass
 
 # Databases
 *.db

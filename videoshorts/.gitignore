@@ -1,4 +1,4 @@
-# Python
+# Python & Bytecode
 __pycache__/
 *.pyc
 *.pyo
@@ -8,34 +8,59 @@ dist/
 build/
 .eggs/
 
-# Venvs — project venv only; AutoClip venv is outside the repo
+# Virtual Environments
 .venv/
+venv/
+env/
 
-# Secrets — NEVER commit these
+# Secrets (NEVER commit these)
 .env
 .env.*
 !.env.example
 
-# Outputs — video files, clips, ZIPs generated at runtime
+# Runtime Media Outputs & Created Shorts (NEVER commit these)
 outputs/
+**/outputs/**
+**/clips/**
+**/downloads/**
+**/uploads/**
 *.mp4
 *.mkv
 *.webm
+*.avi
+*.mov
+*.wmv
+*.flv
+*.m4v
+*.ts
 *.zip
+*.tar
+*.gz
 *.srt
-!tests/fixtures/*.srt
-!tests/fixtures/*.mp4
+*.vtt
+*.ass
 
-# DB
+# Databases
 *.db
+*.db-shm
+*.db-wal
+*.sqlite
 *.sqlite3
 
-# IDE
+# Test & Coverage Caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor & OS files
 .vscode/
 .idea/
 *.suo
 *.user
-
-# OS
 .DS_Store
 Thumbs.db
+ehthumbs.db
+
+# Backups
+.git_backup/
+*.bak
