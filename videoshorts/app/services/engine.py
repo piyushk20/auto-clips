@@ -345,6 +345,35 @@ def extract_embedded_subtitles(video_path: str) -> str | None:
     return None
 
 
+def extract_dialogue_in_range(srt_path: str | None, start_sec: float, end_sec: float) -> list[dict[str, Any]]:
+    """
+    Extract subtitle dialogue items within [start_sec, end_sec].
+    Returns list of {'start': float, 'end': float, 'text': str}.
+    """
+    if not srt_path or not Path(srt_path).exists():
+        return []
+    try:
+        import pysrt
+        subs = pysrt.open(srt_path, encoding="utf-8")
+        items: list[dict[str, Any]] = []
+        for s in subs:
+            s_start = s.start.hours * 3600 + s.start.minutes * 60 + s.start.seconds + s.start.milliseconds / 1000.0
+            s_end = s.end.hours * 3600 + s.end.minutes * 60 + s.end.seconds + s.end.milliseconds / 1000.0
+            if s_end > start_sec and s_start < end_sec:
+                clean_text = " ".join(s.text.replace("\n", " ").split())
+                if clean_text:
+                    items.append({
+                        "start": round(s_start, 2),
+                        "end": round(s_end, 2),
+                        "text": clean_text,
+                    })
+        return items
+    except Exception as exc:
+        log.warning("Could not extract dialogue from SRT: %s", exc)
+        return []
+
+
+
 def download_source(url: str, progress_cb: Callable[[str], None] | None = None) -> tuple[str, str | None]:
     """
     Download a video URL using yt-dlp to outputs/downloads/.
@@ -469,7 +498,7 @@ def run_job(
     provider: str,
     progress_cb: Callable[[str], None] | None = None,
     category: str = "default",
-    min_score: float = 0.0,
+    min_score: float = 0.72,
 ) -> Result:
     """
     Analyse *source* (URL or local file path) with AutoClip.
@@ -520,7 +549,7 @@ def run_job(
         cmd += ["--model", "gemini-3.1-flash-lite"]
     if srt:
         cmd += ["--srt", srt]
-    eff_min_score = min_score if min_score > 0 else 0.4
+    eff_min_score = min_score if min_score > 0 else 0.72
     cmd += ["--min-score", str(eff_min_score)]
 
     t0 = time.monotonic()

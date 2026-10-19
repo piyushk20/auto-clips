@@ -1137,6 +1137,25 @@
             </div>
           </div>
 
+          <div class="form-row">
+            <div class="input-group">
+              <label for="viralityThreshold">Virality & Engagement Threshold</label>
+              <select id="viralityThreshold">
+                <option value="0.75" selected>🔥 Viral Elite (Score &ge; 0.75) — Recommended</option>
+                <option value="0.70">✨ High Engagement (Score &ge; 0.70)</option>
+                <option value="0.60">🎬 Balanced Highlights (Score &ge; 0.60)</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="clipPacing">Clip Pacing & Duration (Trimming)</label>
+              <select id="clipPacing">
+                <option value="punchy" selected>⚡ Ultra Punchy (25s–40s) — Cut all filler</option>
+                <option value="standard">⏱️ Standard Short (35s–50s) — Max retention</option>
+                <option value="extended">📖 Extended Context (50s–70s)</option>
+              </select>
+            </div>
+          </div>
+
           <button type="submit" class="btn-submit" id="submitBtn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="5 3 19 12 5 21 5 3"/>
@@ -1662,6 +1681,8 @@
       const platforms = Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value);
       const provider = document.getElementById('provider').value;
       const category = document.getElementById('category').value;
+      const minScore = parseFloat(document.getElementById('viralityThreshold')?.value || '0.72');
+      const pacing = document.getElementById('clipPacing')?.value || 'punchy';
       const isUpload = document.getElementById('tabUpload').classList.contains('active');
 
       try {
@@ -1677,6 +1698,8 @@
           formData.append('platforms', JSON.stringify(platforms));
           formData.append('provider', provider);
           formData.append('category', category);
+          formData.append('min_score', minScore.toString());
+          formData.append('pacing', pacing);
 
           const res = await fetch('/api/v1/jobs/upload', {
             method: 'POST',
@@ -1702,6 +1725,8 @@
               platforms: platforms,
               provider: provider,
               category: category,
+              min_score: minScore,
+              pacing: pacing,
             }),
           });
           if (!res.ok) {

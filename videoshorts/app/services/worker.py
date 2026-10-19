@@ -103,6 +103,98 @@ def _ensure_english_details(clips: list[engine.ClipInfo]) -> None:
         log.warning("Could not automatically translate clips to English: %s", exc)
 
 
+def _refine_and_trim_clips(
+    clips: list[engine.ClipInfo],
+    srt_path: str | None,
+    progress_cb: Callable[[str], None] | None = None,
+    target_max_sec: float = 45.0,
+) -> None:
+    """
+    Intelligently trim candidate clips down to their punchiest, highest-retention window (25s - 45s).
+    Strips away opening wind-ups, filler intros, and trailing chatter so the clip conveys 'the real thing'.
+    """
+    api_key = settings.get_api_key("gemini")
+    for i, clip in enumerate(clips):
+        dur = clip.end_sec - clip.start_sec
+        if dur <= 35.0:
+            continue
+
+        dialogue = engine.extract_dialogue_in_range(srt_path, clip.start_sec, clip.end_sec) if srt_path else []
+
+        trimmed_start: float | None = None
+        trimmed_end: float | None = None
+        new_title: str | None = None
+        new_reason: str | None = None
+
+        if api_key and dialogue and len(dialogue) >= 2:
+            import urllib.request
+            from app.services.memory_service import memory_service
+            mem_context = memory_service.get_prompt_context()
+            lines_str = "\n".join([f"[{d['start']:.1f}s - {d['end']:.1f}s]: {d['text']}" for d in dialogue[:45]])
+            prompt = (
+                "You are an elite short-form video editor for YouTube Shorts and TikTok.\n"
+                f"The current raw video segment runs from {clip.start_sec:.2f}s to {clip.end_sec:.2f}s ({dur:.1f}s total).\n"
+                "User goal: 'find the clips which are highly engaging and keep them short that convey the real thing, remove the unwanted parts'.\n"
+                "Your objective: Extract ONLY the punchiest core moment (target duration: 25 to 45 seconds, strictly max 48 seconds).\n\n"
+                "Transcript with timestamps:\n"
+                f"{lines_str}\n\n"
+                "Rules:\n"
+                "1. HOOK START: Strip away throat-clearing, greetings, filler phrases ('so yeah', 'welcome back', 'as I said'), and slow build-ups. Start at the exact second where the compelling statement, hook, or core story begins.\n"
+                "2. PUNCHLINE END: Strip away trailing banter, off-topic thoughts, and outro chatter. End at the exact second where the punchline or core message finishes.\n"
+                "3. CONVEY THE REAL THING: The trimmed clip must be self-contained and convey the central shocking revelation, insight, or advice.\n"
+                f"{mem_context}\n"
+                "4. Return ONLY valid JSON in this exact structure:\n"
+                "{\n"
+                '  "start_sec": <float>,\n'
+                '  "end_sec": <float>,\n'
+                '  "title": "<punchy high-CTR English YouTube Shorts title under 65 chars>",\n'
+                '  "reason": "<1-2 sentence English explanation of why this moment hooks viewers>"\n'
+                "}"
+            )
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={api_key}"
+                req_body = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode("utf-8")
+                req = urllib.request.Request(url, data=req_body, headers={"Content-Type": "application/json"})
+                with urllib.request.urlopen(req, timeout=25) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    text = data["candidates"][0]["content"]["parts"][0]["text"]
+                    match = re.search(r"\{.*\}", text, re.DOTALL)
+                    if match:
+                        parsed = json.loads(match.group(0))
+                        cand_start = float(parsed.get("start_sec", 0))
+                        cand_end = float(parsed.get("end_sec", 0))
+                        if (clip.start_sec <= cand_start < cand_end <= clip.end_sec + 2.0) and (18.0 <= (cand_end - cand_start) <= 55.0):
+                            trimmed_start = round(cand_start, 2)
+                            trimmed_end = round(cand_end, 2)
+                            new_title = parsed.get("title")
+                            new_reason = parsed.get("reason")
+            except Exception as gem_err:
+                log.warning("AI clip trimming error for clip %s: %s", clip.clip_id, gem_err)
+
+        # Fallback heuristic trimming if AI didn't provide valid timestamps and clip is too long
+        if trimmed_start is None or trimmed_end is None:
+            if dur > 42.0:
+                head_trim = min(10.0, dur * 0.12)
+                tail_trim = min(15.0, dur * 0.18)
+                trimmed_start = round(clip.start_sec + head_trim, 2)
+                trimmed_end = round(min(clip.end_sec - tail_trim, trimmed_start + target_max_sec), 2)
+                if trimmed_end - trimmed_start < 20.0:
+                    trimmed_end = round(min(clip.end_sec, trimmed_start + 25.0), 2)
+
+        if trimmed_start is not None and trimmed_end is not None and trimmed_end > trimmed_start:
+            old_dur = clip.duration_sec
+            clip.start_sec = trimmed_start
+            clip.end_sec = trimmed_end
+            clip.duration_sec = round(trimmed_end - trimmed_start, 2)
+            if new_title:
+                clip.title = new_title
+            if new_reason:
+                clip.reason = new_reason
+            if progress_cb:
+                progress_cb(f"Optimized clip #{i+1}: trimmed from {old_dur:.1f}s to punchy {clip.duration_sec:.1f}s (removed unwanted filler)")
+
+
+
 class JobWorker:
     """Single-concurrency background job processor with SSE pub/sub."""
 
@@ -289,6 +381,21 @@ class JobWorker:
                 category=job_category,
             )
 
+            # Filter for high virality & engagement moments
+            if res.clips:
+                res.clips.sort(key=lambda c: c.score or 0.0, reverse=True)
+                high_eng = [c for c in res.clips if (c.score or 0.0) >= 0.70]
+                if not high_eng:
+                    high_eng = res.clips[:3]
+                res.clips = high_eng[:5]
+                on_progress_line(f"Identified {len(res.clips)} high-virality moments (scores: {', '.join(f'{c.score:.2f}' for c in res.clips)})")
+
+            # Store original timestamps before trimming so produced videos can be trimmed accurately
+            orig_bounds = {c.clip_id: (c.start_sec, c.end_sec, c.duration_sec) for c in res.clips}
+
+            # Intelligently trim clips down to punchy 25s - 45s (conveying the real thing, removing unwanted parts)
+            _refine_and_trim_clips(res.clips, auto_srt, progress_cb=on_progress_line)
+
             # 3. Produce clips for requested platforms
             produced_files_by_platform: dict[str, list[str]] = {}
 
@@ -323,6 +430,9 @@ class JobWorker:
                     # Guarantee all clip titles and descriptions are in English
                     _ensure_english_details(res.clips)
 
+                    ffmpeg_dir = r"C:\Users\HP\ffmpeg\ffmpeg-2026-04-09-git-d3d0b7a5ee-essentials_build\bin"
+                    ffmpeg_bin = str(Path(ffmpeg_dir) / "ffmpeg.exe") if (Path(ffmpeg_dir) / "ffmpeg.exe").exists() else "ffmpeg"
+
                     # Save Clip records
                     for i, clip_info in enumerate(res.clips):
                         raw_video_path = clip_info.file if (clip_info.file and Path(clip_info.file).exists()) else None
@@ -335,34 +445,56 @@ class JobWorker:
                             if raw_video_path and raw_video_path != clip_info.file:
                                 break
 
-                        # Permanently copy clip to outputs/clips/{job_id}/
+                        orig_start, orig_end, orig_dur = orig_bounds.get(clip_info.clip_id, (clip_info.start_sec, clip_info.end_sec, clip_info.duration_sec))
+                        offset = max(0.0, clip_info.start_sec - orig_start)
+                        target_dur = clip_info.duration_sec
+
+                        clean_slug = re.sub(r"[^a-zA-Z0-9]+", "_", clip_info.title or "").strip("_")
+                        clean_filename = f"clip_{i+1}_{clean_slug[:45]}.mp4" if clean_slug else f"clip_{i+1}_{clip_info.clip_id}.mp4"
+                        dst_p = permanent_clips_dir / clean_filename
                         permanent_video_path = None
+
+                        # If raw_video_path (e.g. produced vertical clip with burned subtitles) exists:
                         if raw_video_path and Path(raw_video_path).exists():
                             src_p = Path(raw_video_path)
-                            clean_slug = re.sub(r"[^a-zA-Z0-9]+", "_", clip_info.title or "").strip("_")
-                            clean_filename = f"clip_{i+1}_{clean_slug[:45]}.mp4" if clean_slug else f"clip_{i+1}_{clip_info.clip_id}.mp4"
-                            dst_p = permanent_clips_dir / clean_filename
-                            try:
-                                import shutil
-                                shutil.copy2(src_p, dst_p)
-                                permanent_video_path = str(dst_p.resolve())
-                            except Exception as copy_err:
-                                log.warning("Could not copy clip to permanent outputs: %s", copy_err)
-                                permanent_video_path = str(src_p.resolve())
+                            # If clip was trimmed by more than 0.8 seconds, trim the produced video
+                            if offset > 0.8 or target_dur < (orig_dur - 1.5):
+                                trim_cmd = [
+                                    ffmpeg_bin, "-y",
+                                    "-ss", f"{offset:.2f}",
+                                    "-t", f"{target_dur:.2f}",
+                                    "-i", str(src_p),
+                                    "-c:v", "libx264", "-c:a", "aac",
+                                    "-avoid_negative_ts", "make_zero",
+                                    "-pix_fmt", "yuv420p",
+                                    str(dst_p)
+                                ]
+                                try:
+                                    import subprocess
+                                    subprocess.run(trim_cmd, capture_output=True, timeout=120)
+                                    if dst_p.exists() and dst_p.stat().st_size > 1000:
+                                        permanent_video_path = str(dst_p.resolve())
+                                except Exception as trim_err:
+                                    log.warning("FFmpeg trimming failed for %s: %s", clip_info.clip_id, trim_err)
+
+                            # If no trimming was needed or if trim command errored:
+                            if not permanent_video_path:
+                                try:
+                                    import shutil
+                                    shutil.copy2(src_p, dst_p)
+                                    permanent_video_path = str(dst_p.resolve())
+                                except Exception as copy_err:
+                                    log.warning("Could not copy clip to permanent outputs: %s", copy_err)
+                                    permanent_video_path = str(src_p.resolve())
 
                         # Direct FFmpeg cut fallback if no produced file was generated
                         if not permanent_video_path or not Path(permanent_video_path).exists():
-                            ffmpeg_dir = r"C:\Users\HP\ffmpeg\ffmpeg-2026-04-09-git-d3d0b7a5ee-essentials_build\bin"
-                            ffmpeg_bin = str(Path(ffmpeg_dir) / "ffmpeg.exe") if (Path(ffmpeg_dir) / "ffmpeg.exe").exists() else "ffmpeg"
-                            clean_slug = re.sub(r"[^a-zA-Z0-9]+", "_", clip_info.title or "").strip("_")
-                            clean_filename = f"clip_{i+1}_{clean_slug[:45]}.mp4" if clean_slug else f"clip_{i+1}_{clip_info.clip_id}.mp4"
-                            dst_p = permanent_clips_dir / clean_filename
-
                             cut_cmd = [
                                 ffmpeg_bin, "-y",
                                 "-ss", str(max(0.0, clip_info.start_sec)),
                                 "-to", str(clip_info.end_sec),
                                 "-i", str(video_file),
+                                "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
                                 "-c:v", "libx264", "-c:a", "aac",
                                 "-pix_fmt", "yuv420p",
                                 str(dst_p)

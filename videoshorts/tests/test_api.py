@@ -88,11 +88,15 @@ def test_index_page_returns_html():
 
 
 def test_memories_endpoints(monkeypatch):
-    monkeypatch.setenv("MEM0_STORAGE_PATH", ":memory:")
-    # Reset singleton memory to pick up test config
     from app.services.memory_service import memory_service
-    memory_service._memory = None
-    memory_service._init_attempted = False
+    # Mock memory methods for fast and isolated test execution
+    dummy_memories = [
+        {"id": "mem-1", "memory": "Always prioritize strong emotional hooks in the first 5 seconds.", "created_at": "2026-10-20T00:00:00"}
+    ]
+    monkeypatch.setattr(memory_service, "get_prompt_context", lambda *a, **kw: "Memory context rules: ...")
+    monkeypatch.setattr(memory_service, "add_memory", lambda *a, **kw: {"status": "ok", "results": [{"id": "mem-1"}]})
+    monkeypatch.setattr(memory_service, "get_memories", lambda *a, **kw: dummy_memories)
+    monkeypatch.setattr(memory_service, "search_memories", lambda *a, **kw: dummy_memories)
 
     # 1. List / Context
     ctx_res = client.get("/api/v1/memories/context")
@@ -116,3 +120,4 @@ def test_memories_endpoints(monkeypatch):
     search_res = client.get("/api/v1/memories?q=emotional+hooks")
     assert search_res.status_code == 200
     assert "memories" in search_res.json()
+

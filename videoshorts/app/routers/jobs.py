@@ -67,6 +67,8 @@ class JobCreateRequest(BaseModel):
     platforms: list[str] = Field(default_factory=lambda: ["youtube_shorts"])
     provider: str = Field(default="gemini")
     category: str = Field(default="default")
+    min_score: float = Field(default=0.72, ge=0.0, le=1.0)
+    pacing: str = Field(default="punchy", description="punchy | standard | extended")
 
 
 @router.get("/health")
@@ -156,6 +158,8 @@ async def upload_and_create_job(
     platforms: str = Form("[\"youtube_shorts\"]"),
     provider: str = Form("gemini"),
     category: str = Form("default"),
+    min_score: float = Form(0.72),
+    pacing: str = Form("punchy"),
     db: Session = Depends(get_db),
 ) -> dict:
     """Upload a local video file with size/extension validation and enqueue a job."""

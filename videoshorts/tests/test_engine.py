@@ -78,3 +78,41 @@ def test_run_job_env_error_exit_2(mock_bin, mock_run):
 def test_missing_binary_raises_env_error(mock_exists):
     with pytest.raises(EnvError, match="autoclip binary not found"):
         engine._autoclip_bin()
+
+
+def test_extract_dialogue_in_range(tmp_path):
+    srt_file = tmp_path / "test.srt"
+    srt_content = (
+        "1\n00:00:01,000 --> 00:00:05,000\nWelcome to the podcast.\n\n"
+        "2\n00:00:06,000 --> 00:00:15,000\nThis is the secret to scaling fast.\n\n"
+        "3\n00:00:16,000 --> 00:00:25,000\nMake sure you never cut corners on quality.\n\n"
+    )
+    srt_file.write_text(srt_content, encoding="utf-8")
+
+    items = engine.extract_dialogue_in_range(str(srt_file), start_sec=5.0, end_sec=20.0)
+    assert len(items) == 2
+    assert "secret to scaling" in items[0]["text"]
+    assert "never cut corners" in items[1]["text"]
+
+
+def test_refine_and_trim_clips_heuristic():
+    from app.services.worker import _refine_and_trim_clips
+
+    long_clip = engine.ClipInfo(
+        clip_id="long1",
+        title="Uncut Long Segment",
+        score=0.88,
+        start_sec=10.0,
+        end_sec=100.0,
+        duration_sec=90.0,
+        reason="Good topic but too long",
+    )
+    clips = [long_clip]
+    # No SRT -> runs intelligent heuristic trimming
+    _refine_and_trim_clips(clips, srt_path=None, target_max_sec=42.0)
+
+    # Durations should be tightly trimmed (target <= 45s, unwanted intro/outro removed)
+    assert clips[0].duration_sec <= 45.0
+    assert clips[0].start_sec > 10.0  # wind-up stripped
+    assert clips[0].end_sec < 100.0   # trailing chatter stripped
+
