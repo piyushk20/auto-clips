@@ -313,6 +313,8 @@ class JobWorker:
             job_provider = str(job.provider)
             job_category = str(job.category)
             job_platforms = list(job.platforms or ["youtube_shorts"])
+            job_min_score = float(getattr(job, "min_score", 0.72) or 0.72)
+            job_pacing = str(getattr(job, "pacing", "punchy") or "punchy")
 
             job.status = "running"
             job.started_at = _now_iso()
@@ -379,12 +381,13 @@ class JobWorker:
                 provider=job_provider,
                 progress_cb=on_progress_line,
                 category=job_category,
+                min_score=job_min_score,
             )
 
             # Filter for high virality & engagement moments
             if res.clips:
                 res.clips.sort(key=lambda c: c.score or 0.0, reverse=True)
-                high_eng = [c for c in res.clips if (c.score or 0.0) >= 0.70]
+                high_eng = [c for c in res.clips if (c.score or 0.0) >= job_min_score]
                 if not high_eng:
                     high_eng = res.clips[:3]
                 res.clips = high_eng[:5]
@@ -393,8 +396,9 @@ class JobWorker:
             # Store original timestamps before trimming so produced videos can be trimmed accurately
             orig_bounds = {c.clip_id: (c.start_sec, c.end_sec, c.duration_sec) for c in res.clips}
 
-            # Intelligently trim clips down to punchy 25s - 45s (conveying the real thing, removing unwanted parts)
-            _refine_and_trim_clips(res.clips, auto_srt, progress_cb=on_progress_line)
+            # Intelligently trim clips down to punchy duration based on pacing preset
+            target_dur = 35.0 if job_pacing == "punchy" else (48.0 if job_pacing == "standard" else 65.0)
+            _refine_and_trim_clips(res.clips, auto_srt, progress_cb=on_progress_line, target_max_sec=target_dur)
 
             # 3. Produce clips for requested platforms
             produced_files_by_platform: dict[str, list[str]] = {}
@@ -436,10 +440,18 @@ class JobWorker:
                     # Save Clip records
                     for i, clip_info in enumerate(res.clips):
                         raw_video_path = clip_info.file if (clip_info.file and Path(clip_info.file).exists()) else None
+                        clip_idx_str = str(i + 1)
                         # Check if any produced file matches
                         for plat, files in produced_files_by_platform.items():
                             for fpath in files:
-                                if clip_info.clip_id in fpath or f"clip_{i+1}" in fpath:
+                                p_name = Path(fpath).name
+                                if (
+                                    p_name.startswith(f"{clip_idx_str}_")
+                                    or p_name.startswith(f"{clip_idx_str}.")
+                                    or f"clip_{clip_idx_str}" in p_name
+                                    or f"_{clip_idx_str}." in p_name
+                                    or (clip_info.clip_id and str(clip_info.clip_id) in p_name)
+                                ):
                                     raw_video_path = fpath
                                     break
                             if raw_video_path and raw_video_path != clip_info.file:
@@ -450,7 +462,8 @@ class JobWorker:
                         target_dur = clip_info.duration_sec
 
                         clean_slug = re.sub(r"[^a-zA-Z0-9]+", "_", clip_info.title or "").strip("_")
-                        clean_filename = f"clip_{i+1}_{clean_slug[:45]}.mp4" if clean_slug else f"clip_{i+1}_{clip_info.clip_id}.mp4"
+                        clean_clip_id = re.sub(r"[^a-zA-Z0-9_-]+", "", str(clip_info.clip_id or "")) or f"seg_{i+1}"
+                        clean_filename = f"clip_{i+1}_{clean_slug[:45]}.mp4" if clean_slug else f"clip_{i+1}_{clean_clip_id}.mp4"
                         dst_p = permanent_clips_dir / clean_filename
                         permanent_video_path = None
 

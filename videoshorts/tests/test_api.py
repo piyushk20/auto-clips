@@ -50,6 +50,8 @@ def test_create_and_get_job():
         "platforms": ["youtube_shorts", "tiktok"],
         "provider": "gemini",
         "category": "podcast",
+        "min_score": 0.85,
+        "pacing": "punchy",
     }
     response = client.post("/api/v1/jobs", json=payload)
     assert response.status_code == 201
@@ -57,12 +59,16 @@ def test_create_and_get_job():
     assert "id" in job
     assert job["source"] == payload["source"]
     assert job["platforms"] == ["youtube_shorts", "tiktok"]
+    assert job["min_score"] == 0.85
+    assert job["pacing"] == "punchy"
 
     # Fetch job by ID
     get_res = client.get(f"/api/v1/jobs/{job['id']}")
     assert get_res.status_code == 200
     details = get_res.json()
     assert details["id"] == job["id"]
+    assert details["min_score"] == 0.85
+    assert details["pacing"] == "punchy"
     assert "clips" in details
 
 

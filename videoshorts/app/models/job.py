@@ -32,6 +32,8 @@ class Job(Base):
     platforms_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     provider: Mapped[str] = mapped_column(Text, nullable=False, default="gemini")
     category: Mapped[str] = mapped_column(Text, nullable=False, default="default")
+    min_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.72)
+    pacing: Mapped[str] = mapped_column(Text, nullable=False, default="punchy")
 
     # Status: pending | queued | running | done | failed | cancelled
     status: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
@@ -91,6 +93,8 @@ class Job(Base):
             "platforms": self.platforms,
             "provider": self.provider,
             "category": self.category,
+            "min_score": self.min_score,
+            "pacing": self.pacing,
             "status": self.status,
             "progress": self.progress,
             "current_step": self.current_step,

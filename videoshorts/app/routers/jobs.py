@@ -140,6 +140,8 @@ async def create_job(
         source=validated_source,
         provider=payload.provider,
         category=payload.category,
+        min_score=float(payload.min_score or 0.72),
+        pacing=str(payload.pacing or "punchy"),
     )
     job.platforms = payload.platforms
     db.add(job)
@@ -212,6 +214,8 @@ async def upload_and_create_job(
         source=str(dest_path.resolve()),
         provider=provider,
         category=category,
+        min_score=float(min_score or 0.72),
+        pacing=str(pacing or "punchy"),
     )
     job.platforms = platforms_list
     db.add(job)

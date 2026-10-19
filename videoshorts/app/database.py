@@ -42,6 +42,20 @@ def get_db():
 
 
 def create_tables() -> None:
-    """Create all tables on startup (idempotent)."""
+    """Create all tables on startup (idempotent) and auto-migrate missing columns."""
     from app.models import job  # noqa: F401 — imports ORM models to register them
     Base.metadata.create_all(bind=engine)
+
+    # Lightweight auto-migration for SQLite columns
+    with engine.connect() as conn:
+        try:
+            res = conn.execute(text("PRAGMA table_info(jobs)"))
+            cols = {row[1] for row in res.fetchall()}
+            if cols and "min_score" not in cols:
+                conn.execute(text("ALTER TABLE jobs ADD COLUMN min_score REAL NOT NULL DEFAULT 0.72"))
+            if cols and "pacing" not in cols:
+                conn.execute(text("ALTER TABLE jobs ADD COLUMN pacing TEXT NOT NULL DEFAULT 'punchy'"))
+            conn.commit()
+        except Exception:
+            pass
+

@@ -61,10 +61,12 @@ def download_clip(
         raise HTTPException(status_code=404, detail="Video file not found on disk.")
 
     # Security check: Ensure file resides within allowed directories
+    appdata_autoclip = (Path(os.environ.get("APPDATA", "")) / "AutoClip").resolve()
     allowed_roots = [
         settings.outputs_dir.resolve(),
-        Path(os.environ.get("APPDATA", "")).resolve(),
     ]
+    if appdata_autoclip.exists():
+        allowed_roots.append(appdata_autoclip)
     is_allowed = any(root in path.parents or root == path.parent for root in allowed_roots)
     if not is_allowed:
         raise HTTPException(status_code=403, detail="Access denied: file outside permitted directories.")

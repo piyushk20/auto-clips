@@ -18,7 +18,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 from app.config import settings
 
@@ -690,8 +690,13 @@ def check_env() -> dict[str, bool]:
         return {"autoclip_bin": False, "ffmpeg": False}
 
     import shutil
+    env = _build_env()
     ffmpeg_dir = r"C:\Users\HP\ffmpeg\ffmpeg-2026-04-09-git-d3d0b7a5ee-essentials_build\bin"
-    has_ffmpeg = bool(shutil.which("ffmpeg") or shutil.which("ffmpeg", path=ffmpeg_dir) or shutil.which("ffmpeg", path=env.get("PATH", "")))
+    has_ffmpeg = bool(
+        shutil.which("ffmpeg")
+        or shutil.which("ffmpeg", path=ffmpeg_dir)
+        or shutil.which("ffmpeg", path=env.get("PATH", ""))
+    )
 
     return {
         "autoclip_bin": True,
@@ -704,19 +709,29 @@ def check_env() -> dict[str, bool]:
 
 def _parse_timestamp(val: Any) -> float:
     if isinstance(val, (int, float)):
-        return float(val)
+        return max(0.0, float(val))
     if not val or not isinstance(val, str):
         return 0.0
     val = val.strip().replace(",", ".")
+    if "-->" in val:
+        val = val.split("-->")[0].strip()
+    if val.endswith(("s", "S")):
+        val = val[:-1].strip()
+    val = val.replace(";", ":")
     parts = val.split(":")
     try:
-        if len(parts) == 3:
-            return float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
+        if len(parts) == 4:
+            frames = float(parts[3])
+            frame_rate = 30.0 if frames < 60 else 1000.0
+            return max(0.0, float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2]) + (frames / frame_rate))
+        elif len(parts) == 3:
+            return max(0.0, float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2]))
         elif len(parts) == 2:
-            return float(parts[0]) * 60 + float(parts[1])
-        return float(val)
+            return max(0.0, float(parts[0]) * 60 + float(parts[1]))
+        return max(0.0, float(val))
     except Exception:
         return 0.0
+
 
 
 def _parse_clips(raw: dict) -> list[ClipInfo]:

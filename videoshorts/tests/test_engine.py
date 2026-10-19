@@ -116,3 +116,26 @@ def test_refine_and_trim_clips_heuristic():
     assert clips[0].start_sec > 10.0  # wind-up stripped
     assert clips[0].end_sec < 100.0   # trailing chatter stripped
 
+
+def test_parse_timestamp_formats():
+    assert engine._parse_timestamp(12.5) == 12.5
+    assert engine._parse_timestamp(42) == 42.0
+    assert engine._parse_timestamp("01:23") == 83.0
+    assert engine._parse_timestamp("01:02:03") == 3723.0
+    assert engine._parse_timestamp("00:01:23,456") == 83.456
+    assert engine._parse_timestamp("00:00:15.500 --> 00:00:25.000") == 15.5
+    assert engine._parse_timestamp("35.5s") == 35.5
+    assert engine._parse_timestamp("00;01;30;00") == 90.0
+    assert engine._parse_timestamp(None) == 0.0
+    assert engine._parse_timestamp("") == 0.0
+    assert engine._parse_timestamp("invalid_text") == 0.0
+
+
+@patch("app.services.engine._autoclip_bin", return_value=Path("autoclip.exe"))
+def test_check_env_does_not_raise(mock_bin):
+    res = engine.check_env()
+    assert isinstance(res, dict)
+    assert "autoclip_bin" in res
+    assert "ffmpeg" in res
+
+
