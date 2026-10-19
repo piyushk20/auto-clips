@@ -1,0 +1,63 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual Environments
+autoclip-venv/
+videoshorts/.venv/
+.venv/
+env/
+venv/
+ENV/
+
+# Secrets & Environment variables (NEVER COMMIT)
+.env
+.env.*
+!.env.example
+
+# Runtime Media Outputs (Video clips, downloaded YouTube source files, ZIPs)
+videoshorts/outputs/
+outputs/
+*.mp4
+*.mkv
+*.webm
+*.avi
+*.mov
+*.zip
+*.srt
+!videoshorts/tests/fixtures/*.srt
+!videoshorts/tests/fixtures/*.mp4
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Test & Coverage Caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor & OS files
+.vscode/
+.idea/
+*.suo
+*.user
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Backups
+.git_backup/
+*.bak
+
+# External Third-Party Cloned Repositories
+agency-agents/
+rea/

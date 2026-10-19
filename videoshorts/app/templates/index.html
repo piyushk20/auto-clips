@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VideoShorts AI — Viral Short Video Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       Apple Human Interface Guidelines (HIG) Design Tokens & Liquid Glass
+       ========================================================================== */
+    :root {
+      /* Apple Dark System Colors */
+      --bg-canvas: #000000;
+      --bg-surface: rgba(28, 28, 34, 0.72);
+      --bg-surface-elevated: rgba(38, 38, 46, 0.85);
+      --bg-material: rgba(22, 22, 26, 0.78);
+      --bg-glass: rgba(255, 255, 255, 0.06);
+      --bg-glass-hover: rgba(255, 255, 255, 0.10);
+      --bg-glass-active: rgba(255, 255, 255, 0.16);
+
+      /* Apple Borders & Hairlines */
+      --border-hairline: rgba(255, 255, 255, 0.10);
+      --border-subtle: rgba(255, 255, 255, 0.15);
+      --border-highlight: rgba(255, 255, 255, 0.22);
+      --inner-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
+
+      /* Apple HIG Semantic Labels */
+      --label-primary: #ffffff;
+      --label-secondary: rgba(235, 235, 245, 0.65);
+      --label-tertiary: rgba(235, 235, 245, 0.40);
+      --label-quaternary: rgba(235, 235, 245, 0.18);
+
+      /* Apple System Tints */
+      --system-blue: #0a84ff;
+      --system-blue-hover: #0071e3;
+      --system-blue-glow: rgba(10, 132, 255, 0.35);
+      --system-green: #30d158;
+      --system-green-glow: rgba(48, 209, 88, 0.3);
+      --system-indigo: #5e5ce6;
+      --system-purple: #bf5af2;
+      --system-orange: #ff9f0a;
+      --system-red: #ff453a;
+      --system-gold: #ffd60a;
+
+      /* Geometry & Spring Curves */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --radius-pill: 9999px;
+      --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      background-image: 
+        radial-gradient(ellipse 90% 40% at 50% -10%, rgba(10, 132, 255, 0.18) 0%, transparent 70%),
+        radial-gradient(circle 500px at 90% 20%, rgba(94, 92, 230, 0.08) 0%, transparent 60%);
+      color: var(--label-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Helvetica Neue", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      letter-spacing: -0.011em;
+    }
+
+    /* ==========================================================================
+       Liquid Glass Header (Functional Layer)
+       ========================================================================== */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0.9rem 2rem;
+      background: rgba(18, 18, 22, 0.72);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border-bottom: 1px solid var(--border-hairline);
+      box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.4);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: var(--label-primary);
+    }
+
+    .brand-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(145deg, #2c2c36 0%, #17171e 100%);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: var(--inner-specular), 0 4px 12px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--system-blue);
+      transition: transform 0.25s var(--ease-apple);
+    }
+
+    .brand:hover .brand-icon-box {
+      transform: scale(1.05);
+      border-color: rgba(10, 132, 255, 0.5);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .brand-title span.badge-pro {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      background: rgba(10, 132, 255, 0.15);
+      border: 1px solid rgba(10, 132, 255, 0.3);
+      color: var(--system-blue);
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-hairline);
+      box-shadow: var(--inner-specular);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--label-secondary);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--system-green);
+      box-shadow: 0 0 10px var(--system-green);
+      animation: pulse-dot 2.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.9); }
+    }
+
+    /* ==========================================================================
+       Main Workspace Layout
+       ========================================================================== */
+    main {
+      flex: 1;
+      max-width: 1320px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.25rem 2rem;
+      display: grid;
+      grid-template-columns: 1fr 390px;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1040px) {
+      main {
+        grid-template-columns: 1fr;
+        padding: 1.5rem 1rem;
+      }
+    }
+
+    /* ==========================================================================
+       Content Layer Cards (Apple Standard Material)
+       ========================================================================== */
+    .card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(28px) saturate(140%);
+      -webkit-backdrop-filter: blur(28px) saturate(140%);
+      border: 1px solid var(--border-hairline);
+      box-shadow: var(--inner-specular), 0 20px 48px -12px rgba(0, 0, 0, 0.6);
+      border-radius: var(--radius-lg);
+      padding: 1.85rem;
+      margin-bottom: 2rem;
+      transition: border-color 0.25s var(--ease-apple), box-shadow 0.25s var(--ease-apple);
+    }
+
+    .card:hover {
+      border-color: var(--border-subtle);
+      box-shadow: var(--inner-specular), 0 24px 54px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.35rem;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.022em;
+      color: var(--label-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .card-title svg {
+      color: var(--system-blue);
+    }
+
+    /* ==========================================================================
+       Apple Native Segmented Control
+       ========================================================================== */
+    .segmented-control {
+      display: flex;
+      padding: 3px;
+      border-radius: var(--radius-md);
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-hairline);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+      margin-bottom: 1.4rem;
+    }
+
+    .segment-btn {
+      flex: 1;
+      padding: 0.55rem 1rem;
+      background: transparent;
+      border: none;
+      color: var(--label-secondary);
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      border-radius: 9px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      transition: all 0.2s var(--ease-apple);
+    }
+
+    .segment-btn:hover {
+      color: var(--label-primary);
+    }
+
+    .segment-btn.active {
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: var(--inner-specular), 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ==========================================================================
+       Inputs & Form Controls
+       ========================================================================== */
+    .input-group {
+      margin-bottom: 1.35rem;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--label-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.055em;
+      margin-bottom: 0.55rem;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 0.85rem 1.1rem;
+      background: rgba(14, 14, 18, 0.7);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      color: var(--label-primary);
+      font-size: 0.92rem;
+      font-family: inherit;
+      outline: none;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+      transition: all 0.2s var(--ease-apple);
+    }
+
+    input[type="text"]::placeholder {
+      color: var(--label-tertiary);
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: var(--system-blue);
+      box-shadow: 0 0 0 3px var(--system-blue-glow), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+      background: rgba(18, 18, 24, 0.85);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='rgba(235, 235, 245, 0.5)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1.1rem center;
+      padding-right: 2.5rem;
+    }
+
+    select option {
+      background: #1c1c22;
+      color: #fff;
+    }
+
+    /* File Dropzone */
+    .file-dropzone {
+      border: 1.5px dashed rgba(255, 255, 255, 0.18);
+      border-radius: var(--radius-md);
+      padding: 2.25rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(12, 12, 16, 0.45);
+      transition: all 0.2s var(--ease-apple);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .file-dropzone:hover, .file-dropzone.dragover {
+      border-color: var(--system-blue);
+      background: rgba(10, 132, 255, 0.06);
+      transform: translateY(-1px);
+    }
+
+    .dropzone-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-hairline);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--system-blue);
+      margin-bottom: 0.35rem;
+    }
+
+    /* Platform Chips */
+    .platform-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 0.25rem;
+    }
+
+    .platform-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.95rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-pill);
+      font-size: 0.81rem;
+      font-weight: 500;
+      color: var(--label-secondary);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s var(--ease-apple);
+    }
+
+    .platform-chip input {
+      display: none;
+    }
+
+    .platform-chip:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--label-primary);
+    }
+
+    .platform-chip.selected {
+      background: rgba(10, 132, 255, 0.16);
+      border-color: rgba(10, 132, 255, 0.5);
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(10, 132, 255, 0.2);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 640px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ==========================================================================
+       Apple Primary Prominent Button
+       ========================================================================== */
+    .btn-submit {
+      width: 100%;
+      padding: 0.95rem 1.5rem;
+      background: linear-gradient(180deg, #0a84ff 0%, #0066d6 100%);
+      color: #ffffff;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: -0.015em;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      box-shadow: var(--inner-specular), 0 8px 24px rgba(10, 132, 255, 0.35);
+      transition: all 0.2s var(--ease-apple);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-top: 1.25rem;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--inner-specular), 0 12px 28px rgba(10, 132, 255, 0.45);
+      background: linear-gradient(180deg, #1f8eff 0%, #006fe6 100%);
+    }
+
+    .btn-submit:active {
+      transform: scale(0.985);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ==========================================================================
+       Live Pipeline Stepper (Apple Activity Design)
+       ========================================================================== */
+    .progress-box {
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-hairline);
+      display: none;
+      animation: fadeIn 0.3s var(--ease-apple);
+    }
+
+    .progress-box.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.85rem;
+    }
+
+    .progress-header-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--label-primary);
+    }
+
+    .progress-percent {
+      font-size: 0.88rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--system-blue);
+    }
+
+    .progress-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      margin-bottom: 1.35rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--system-blue), var(--system-indigo), var(--system-green));
+      border-radius: var(--radius-pill);
+      box-shadow: 0 0 12px rgba(10, 132, 255, 0.5);
+      transition: width 0.35s var(--ease-apple);
+    }
+
+    .stepper-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.4rem;
+      position: relative;
+    }
+
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--label-tertiary);
+      gap: 0.35rem;
+      transition: all 0.2s var(--ease-apple);
+    }
+
+    .step-ring {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s var(--ease-apple);
+    }
+
+    .step-item.active {
+      color: var(--system-blue);
+      font-weight: 600;
+    }
+
+    .step-item.active .step-ring {
+      background: var(--system-blue);
+      border-color: #ffffff;
+      box-shadow: 0 0 10px var(--system-blue-glow);
+    }
+
+    .step-item.completed {
+      color: var(--system-green);
+    }
+
+    .step-item.completed .step-ring {
+      background: var(--system-green);
+      border-color: var(--system-green);
+    }
+
+    /* Apple Terminal / Console Container */
+    .terminal-container {
+      background: #09090b;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .terminal-topbar {
+      padding: 0.5rem 0.85rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .window-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-close { background: #ff5f56; }
+    .dot-min { background: #ffbd2e; }
+    .dot-max { background: #27c93f; }
+
+    .terminal-title {
+      margin-left: 0.4rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--label-tertiary);
+    }
+
+    .terminal {
+      padding: 0.85rem 1rem;
+      font-family: 'JetBrains Mono', -apple-system, monospace;
+      font-size: 0.76rem;
+      color: rgba(235, 235, 245, 0.7);
+      max-height: 160px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    /* ==========================================================================
+       Clips Gallery (9:16 Apple Vertical Shorts)
+       ========================================================================== */
+    .clips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .clip-card {
+      background: rgba(20, 20, 24, 0.8);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--inner-specular), 0 12px 30px -8px rgba(0, 0, 0, 0.5);
+      transition: all 0.25s var(--ease-apple);
+    }
+
+    .clip-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.22);
+      box-shadow: var(--inner-specular), 0 20px 42px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    .clip-thumbnail {
+      aspect-ratio: 9/16;
+      max-height: 260px;
+      background: #09090c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .clip-thumbnail video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.35s var(--ease-apple);
+    }
+
+    .clip-card:hover .clip-thumbnail video {
+      transform: scale(1.03);
+    }
+
+    .play-overlay-pill {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      transition: transform 0.2s var(--ease-apple), background 0.2s var(--ease-apple);
+    }
+
+    .clip-thumbnail:hover .play-overlay-pill {
+      transform: scale(1.12);
+      background: rgba(10, 132, 255, 0.85);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .score-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 10px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--system-gold);
+      font-weight: 700;
+      font-size: 0.74rem;
+      border-radius: var(--radius-pill);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .duration-badge {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      padding: 3px 8px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.7rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      border-radius: 6px;
+    }
+
+    .clip-body {
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .clip-title {
+      font-weight: 600;
+      font-size: 0.94rem;
+      line-height: 1.35;
+      letter-spacing: -0.015em;
+      margin-bottom: 0.45rem;
+      color: var(--label-primary);
+    }
+
+    .clip-reason {
+      font-size: 0.79rem;
+      color: var(--label-secondary);
+      line-height: 1.45;
+      margin-bottom: 1.15rem;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .clip-actions {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: auto;
+    }
+
+    .btn-glass {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.6rem 0.85rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-sm);
+      color: var(--label-primary);
+      font-size: 0.81rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: var(--inner-specular);
+      transition: all 0.2s var(--ease-apple);
+    }
+
+    .btn-glass:hover {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: var(--border-subtle);
+    }
+
+    .btn-glass.btn-primary-glass {
+      background: rgba(10, 132, 255, 0.16);
+      border-color: rgba(10, 132, 255, 0.4);
+      color: var(--system-blue);
+    }
+
+    .btn-glass.btn-primary-glass:hover {
+      background: rgba(10, 132, 255, 0.25);
+      border-color: var(--system-blue);
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       Sidebar / Recent Runs (macOS Style)
+       ========================================================================== */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .history-item {
+      padding: 0.95rem 1.05rem;
+      background: rgba(16, 16, 20, 0.6);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      box-shadow: var(--inner-specular);
+      transition: all 0.2s var(--ease-apple);
+    }
+
+    .history-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-subtle);
+      transform: translateX(2px);
+    }
+
+    .history-item.active {
+      background: rgba(10, 132, 255, 0.12);
+      border-color: rgba(10, 132, 255, 0.5);
+      box-shadow: 0 0 16px rgba(10, 132, 255, 0.18), var(--inner-specular);
+    }
+
+    .history-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.45rem;
+    }
+
+    .status-pill {
+      font-size: 0.66rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-done { 
+      background: rgba(48, 209, 88, 0.16); 
+      color: var(--system-green); 
+      border: 1px solid rgba(48, 209, 88, 0.3); 
+    }
+    .status-running { 
+      background: rgba(10, 132, 255, 0.16); 
+      color: var(--system-blue); 
+      border: 1px solid rgba(10, 132, 255, 0.3); 
+    }
+    .status-queued { 
+      background: rgba(255, 159, 10, 0.16); 
+      color: var(--system-orange); 
+      border: 1px solid rgba(255, 159, 10, 0.3); 
+    }
+    .status-failed { 
+      background: rgba(255, 69, 58, 0.16); 
+      color: var(--system-red); 
+      border: 1px solid rgba(255, 69, 58, 0.3); 
+    }
+
+    .history-source {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--label-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.25rem;
+    }
+
+    .history-meta {
+      font-size: 0.74rem;
+      color: var(--label-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-delete-run {
+      background: transparent;
+      border: none;
+      color: var(--label-tertiary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s var(--ease-apple);
+    }
+
+    .btn-delete-run:hover {
+      background: rgba(255, 69, 58, 0.18);
+      color: var(--system-red);
+    }
+
+    /* ==========================================================================
+       Apple VisionOS / QuickTime Floating Modal Video Player
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(36px) saturate(180%);
+      -webkit-backdrop-filter: blur(36px) saturate(180%);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1.5rem;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      animation: modalFadeIn 0.28s var(--ease-apple);
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-sheet {
+      background: rgba(24, 24, 28, 0.88);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: var(--radius-xl);
+      padding: 1.75rem;
+      max-width: 480px;
+      width: 100%;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: var(--inner-specular), 0 32px 80px -15px rgba(0, 0, 0, 0.85);
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s var(--ease-apple);
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.08);
+    }
+
+    .modal-video-box {
+      aspect-ratio: 9/16;
+      max-height: 54vh;
+      width: 100%;
+      background: #000;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin: 0.85rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-video-box video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--label-tertiary);
+      font-size: 0.88rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .empty-state svg {
+      color: var(--label-quaternary);
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Liquid Glass Header -->
+  <header>
+    <a href="#" class="brand">
+      <div class="brand-icon-box">
+        <!-- Apple-style spark/bolt icon -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      <div class="brand-title">
+        <span>VideoShorts AI</span>
+        <span class="badge-pro">Studio</span>
+      </div>
+    </a>
+    <div class="header-status">
+      <div class="status-dot"></div>
+      <span id="engineStatus">AutoClip Ready</span>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main>
+    <div class="left-col">
+      <!-- Create Job Card -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            </svg>
+            Generate Viral Shorts
+          </h2>
+        </div>
+
+        <!-- Segmented Control -->
+        <div class="segmented-control">
+          <button type="button" class="segment-btn active" id="tabUrl" onclick="switchTab('url')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            Video URL
+          </button>
+          <button type="button" class="segment-btn" id="tabUpload" onclick="switchTab('upload')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Upload Media
+          </button>
+        </div>
+
+        <form id="jobForm" onsubmit="handleSubmit(event)">
+          <!-- URL Input -->
+          <div id="urlSection" class="input-group">
+            <label for="videoUrl">Source Video URL (YouTube, Vimeo, Direct MP4)</label>
+            <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" />
+          </div>
+
+          <!-- File Upload -->
+          <div id="uploadSection" class="input-group" style="display: none;">
+            <label>Local Video Ingestion</label>
+            <div class="file-dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+              <input type="file" id="fileInput" accept="video/mp4,video/quicktime,video/webm" style="display: none;" onchange="handleFileSelected(this)" />
+              <div class="dropzone-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
+                  <path d="M12 12v9"/>
+                  <path d="m16 16-4-4-4 4"/>
+                </svg>
+              </div>
+              <div id="dropzoneText">
+                <p style="font-weight: 600; color: var(--label-primary); font-size: 0.92rem;">Click to browse or drop video</p>
+                <p style="font-size: 0.78rem; color: var(--label-tertiary);">MP4, MOV, or WEBM up to 500 MB</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Target Platforms -->
+          <div class="input-group">
+            <label>Target Distribution Formats (9:16 Vertical)</label>
+            <div class="platform-chips">
+              <label class="platform-chip selected">
+                <input type="checkbox" name="platform" value="youtube_shorts" checked />
+                <span>YouTube Shorts</span>
+              </label>
+              <label class="platform-chip selected">
+                <input type="checkbox" name="platform" value="tiktok" checked />
+                <span>TikTok</span>
+              </label>
+              <label class="platform-chip selected">
+                <input type="checkbox" name="platform" value="instagram_reels" checked />
+                <span>Instagram Reels</span>
+              </label>
+              <label class="platform-chip">
+                <input type="checkbox" name="platform" value="bilibili" />
+                <span>Bilibili</span>
+              </label>
+              <label class="platform-chip">
+                <input type="checkbox" name="platform" value="douyin" />
+                <span>Douyin</span>
+              </label>
+              <label class="platform-chip">
+                <input type="checkbox" name="platform" value="xiaohongshu" />
+                <span>Xiaohongshu</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="input-group">
+              <label for="provider">AI Scoring Engine</label>
+              <select id="provider">
+                <option value="gemini" selected>Google Gemini (Recommended)</option>
+                <option value="openai">OpenAI GPT-4o</option>
+                <option value="qwen">Qwen 2.5</option>
+                <option value="deepseek">DeepSeek V3</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="category">Content Category</label>
+              <select id="category">
+                <option value="default" selected>General / Auto-Detect</option>
+                <option value="experience">Podcasts & Interviews</option>
+                <option value="knowledge">Education & Tutorials</option>
+                <option value="speech">Speeches & Keynotes</option>
+                <option value="entertainment">Gaming & Entertainment</option>
+                <option value="business">Business & Technology</option>
+                <option value="opinion">Commentary & Debate</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Generate Viral Shorts
+          </button>
+        </form>
+
+        <!-- Live Progress Section -->
+        <div class="progress-box" id="progressBox">
+          <div class="progress-header">
+            <span class="progress-header-title" id="progressStatusText">Pipeline Active</span>
+            <span class="progress-percent" id="progressPercent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressBar"></div>
+          </div>
+
+          <div class="stepper-nav">
+            <div class="step-item" id="step-download">
+              <div class="step-ring"></div>
+              <span>Download</span>
+            </div>
+            <div class="step-item" id="step-transcribe">
+              <div class="step-ring"></div>
+              <span>Transcribe</span>
+            </div>
+            <div class="step-item" id="step-analyze">
+              <div class="step-ring"></div>
+              <span>AI Scoring</span>
+            </div>
+            <div class="step-item" id="step-cut">
+              <div class="step-ring"></div>
+              <span>Cutting</span>
+            </div>
+            <div class="step-item" id="step-produce">
+              <div class="step-ring"></div>
+              <span>Rendering</span>
+            </div>
+          </div>
+
+          <div class="terminal-container">
+            <div class="terminal-topbar">
+              <div class="window-dot dot-close"></div>
+              <div class="window-dot dot-min"></div>
+              <div class="window-dot dot-max"></div>
+              <span class="terminal-title">AutoClip Console Stream</span>
+            </div>
+            <div class="terminal" id="terminalLog">Connecting to AutoClip pipeline stream...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mem0 AI Creator Memory Section -->
+      <section class="card" id="memorySection" style="margin-bottom: 2rem;">
+        <div class="card-header" style="cursor: pointer;" onclick="toggleMemorySection()">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, rgba(10, 132, 255, 0.25), rgba(191, 90, 242, 0.3)); border: 1px solid rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);">
+              🧠
+            </div>
+            <div>
+              <h2 class="card-title" style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem;">
+                Mem0 AI Creator Memory
+                <span style="font-size: 0.68rem; padding: 2px 7px; background: rgba(10, 132, 255, 0.15); border: 1px solid rgba(10, 132, 255, 0.3); border-radius: 6px; color: var(--system-blue); font-weight: 600;">ACTIVE</span>
+              </h2>
+              <p style="margin: 0; font-size: 0.74rem; color: var(--label-tertiary);">Persistent learning layer using Mem0 + Google Gemini vector store</p>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <span class="status-pill status-done" id="memCountPill">0 Memories</span>
+            <button class="btn-glass" type="button" style="padding: 0.35rem 0.75rem; font-size: 0.76rem;" id="memToggleBtn">
+              Collapse
+            </button>
+          </div>
+        </div>
+
+        <div id="memoryBody" style="display: block; margin-top: 0.85rem;">
+          <!-- Memory Search and Add -->
+          <div style="display: flex; gap: 0.75rem; margin-bottom: 0.85rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 240px; position: relative;">
+              <input type="text" id="memorySearchInput" placeholder="Semantic vector search memories (e.g., 'hook style', 'duration', 'language')..." 
+                     style="width: 100%; padding-left: 2.25rem;" oninput="debounceMemorySearch(this.value)" />
+              <svg style="position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--label-tertiary);" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Quick presets -->
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.1rem; align-items: center;">
+            <span style="font-size: 0.72rem; color: var(--label-tertiary); font-weight: 500;">Quick Add:</span>
+            <button type="button" class="btn-glass" style="padding: 0.25rem 0.65rem; font-size: 0.72rem; border-radius: var(--radius-pill);" onclick="quickAddMemory('Always generate clip titles, reasons, and descriptions in fluent English.')">+ English Only</button>
+            <button type="button" class="btn-glass" style="padding: 0.25rem 0.65rem; font-size: 0.72rem; border-radius: var(--radius-pill);" onclick="quickAddMemory('Prioritize high-tension emotional hooks within the first 5 seconds.')">+ 5s Hook Priority</button>
+            <button type="button" class="btn-glass" style="padding: 0.25rem 0.65rem; font-size: 0.72rem; border-radius: var(--radius-pill);" onclick="quickAddMemory('Keep short-form video duration strictly between 30 and 60 seconds.')">+ 30-60s Duration</button>
+            <button type="button" class="btn-glass" style="padding: 0.25rem 0.65rem; font-size: 0.72rem; border-radius: var(--radius-pill);" onclick="quickAddMemory('Favor actionable personal finance, investigative disclosures, and tech insights.')">+ Finance & Tech Focus</button>
+          </div>
+
+          <!-- Add Custom Memory Form -->
+          <div style="display: flex; gap: 0.65rem; margin-bottom: 1.25rem;">
+            <input type="text" id="newMemoryInput" placeholder="Remember a preference or rule (e.g. 'Never select slow speaker introductions')..." 
+                   style="flex: 1;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitNewMemory();}" />
+            <select id="newMemoryCategory" style="width: 140px; font-size: 0.8rem;">
+              <option value="style">Style & Tone</option>
+              <option value="duration">Duration</option>
+              <option value="hook">Hook Rules</option>
+              <option value="language">Language</option>
+              <option value="topic">Topic Focus</option>
+            </select>
+            <button type="button" class="btn-glass btn-primary-glass" style="padding: 0.65rem 1.15rem; font-size: 0.82rem; white-space: nowrap;" onclick="submitNewMemory()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Remember
+            </button>
+          </div>
+
+          <!-- Memory List Container -->
+          <div id="memoryListContainer" style="display: flex; flex-direction: column; gap: 0.55rem; max-height: 260px; overflow-y: auto; padding-right: 4px;">
+            <div style="text-align: center; padding: 1.2rem; color: var(--label-tertiary); font-size: 0.8rem;">Loading creator memories...</div>
+          </div>
+
+          <!-- Active Prompt Injection Notice -->
+          <div style="margin-top: 1rem; padding: 0.7rem 0.95rem; background: rgba(10, 132, 255, 0.06); border: 1px solid rgba(10, 132, 255, 0.18); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.76rem; color: var(--system-blue);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span>Mem0 automatically injects these rules into Gemini AI scoring and title generation.</span>
+            </div>
+            <button type="button" class="btn-glass" style="font-size: 0.72rem; padding: 0.25rem 0.65rem;" onclick="showMemoryPromptContext()">Inspect Prompt Context</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Generated Clips Results -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2"/>
+              <path d="m9 8 6 4-6 4Z"/>
+            </svg>
+            Generated Clips (<span id="clipsCount">0</span>)
+          </h2>
+        </div>
+        <div id="clipsGrid" class="clips-grid">
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m22 8-6 4 6 4V8Z"/>
+              <rect width="14" height="12" x="2" y="6" rx="2"/>
+            </svg>
+            <p>No clips generated yet. Submit a video above to process viral shorts!</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right Column: Job History -->
+    <aside class="right-col">
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+            </svg>
+            Recent Runs
+          </h2>
+        </div>
+        <div id="historyList" class="history-list">
+          <div class="empty-state">Loading runs...</div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Modal Video Player (Apple Vision / QuickTime Style) -->
+  <div id="videoModal" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeModal()" title="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <h3 id="modalTitle" style="margin-bottom: 0.35rem; color: #ffffff; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.015em; padding-right: 2rem;"></h3>
+      <p id="modalReason" style="font-size: 0.8rem; color: var(--label-secondary); margin-bottom: 0.85rem; line-height: 1.45;"></p>
+      <div class="modal-video-box">
+        <video id="modalVideo" controls autoplay playsinline loop></video>
+      </div>
+      <div style="margin-top: 0.85rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <a id="modalDownloadBtn" href="#" download class="btn-glass btn-primary-glass" style="padding: 0.65rem 1.25rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download MP4
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeJobId = null;
+    let eventSource = null;
+    let selectedFile = null;
+    let currentClipsData = [];
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function openClipModal(idx) {
+      const c = currentClipsData[idx];
+      if (!c) return;
+      const streamUrl = `/api/v1/clips/${c.id}/download?download=false`;
+      const downloadUrl = `/api/v1/clips/${c.id}/download?download=true`;
+      openModal(streamUrl, c.title || `Clip #${c.clip_index}`, c.reason || '', downloadUrl);
+    }
+
+    function openModal(videoSrc, title, reason, downloadUrl) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalReason').textContent = reason;
+      const v = document.getElementById('modalVideo');
+      v.src = videoSrc;
+      v.load();
+      v.play().catch(() => {});
+      document.getElementById('modalDownloadBtn').href = downloadUrl;
+      document.getElementById('videoModal').classList.add('active');
+    }
+
+    function closeModal(e) {
+      const v = document.getElementById('modalVideo');
+      v.pause();
+      v.src = '';
+      document.getElementById('videoModal').classList.remove('active');
+    }
+
+    // Toggle platform chip styling
+    document.querySelectorAll('.platform-chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        const cb = chip.querySelector('input');
+        if (e.target !== cb) cb.checked = !cb.checked;
+        chip.classList.toggle('selected', cb.checked);
+      });
+    });
+
+    function switchTab(mode) {
+      document.getElementById('tabUrl').classList.toggle('active', mode === 'url');
+      document.getElementById('tabUpload').classList.toggle('active', mode === 'upload');
+      document.getElementById('urlSection').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('uploadSection').style.display = mode === 'upload' ? 'block' : 'none';
+    }
+
+    function handleFileSelected(input) {
+      if (input.files && input.files[0]) {
+        selectedFile = input.files[0];
+        document.getElementById('dropzoneText').innerHTML = `
+          <p style="color: var(--system-blue); font-weight: 700; font-size: 0.92rem;">${selectedFile.name}</p>
+          <p style="font-size: 0.78rem; color: var(--label-tertiary);">${(selectedFile.size / 1024 / 1024).toFixed(1)} MB</p>
+        `;
+      }
+    }
+
+    async function checkHealth() {
+      try {
+        const res = await fetch('/api/v1/health');
+        const data = await res.json();
+        document.getElementById('engineStatus').textContent = data.autoclip_binary ? 'AutoClip Engine Ready' : 'AutoClip Standby';
+      } catch (err) {
+        document.getElementById('engineStatus').textContent = 'API Connecting...';
+      }
+    }
+
+    async function loadJobs() {
+      try {
+        const res = await fetch('/api/v1/jobs');
+        const data = await res.json();
+        const list = document.getElementById('historyList');
+        if (!data.jobs || data.jobs.length === 0) {
+          list.innerHTML = '<div class="empty-state"><p>No runs recorded.</p></div>';
+          return;
+        }
+
+        // Auto-select the most recent completed job with clips if none selected yet
+        if (!activeJobId) {
+          const runWithClips = data.jobs.find(j => j.clip_count > 0 && j.status === 'done') || data.jobs[0];
+          if (runWithClips) {
+            activeJobId = runWithClips.id;
+            fetchJobDetails(runWithClips.id);
+          }
+        }
+
+        list.innerHTML = data.jobs.map(j => `
+          <div class="history-item ${j.id === activeJobId ? 'active' : ''}" onclick="selectJob('${j.id}')">
+            <div class="history-top">
+              <span class="status-pill status-${j.status}">${j.status}</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--label-tertiary); font-size: 0.74rem;">${new Date(j.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                <button class="btn-delete-run" title="Delete run" onclick="event.stopPropagation(); deleteJob('${j.id}')">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="history-source">${j.source.split(/[\\\\/]/).pop()}</div>
+            <div class="history-meta">
+              <span>${j.clip_count} viral clips</span>
+              <span>${(j.progress * 100).toFixed(0)}%</span>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error("Failed to load jobs", err);
+      }
+    }
+
+    async function selectJob(jobId) {
+      activeJobId = jobId;
+      await fetchJobDetails(jobId);
+      connectSSE(jobId);
+      loadJobs();
+    }
+
+    async function deleteJob(jobId) {
+      if (!confirm('Are you sure you want to delete this run and all its saved clips?')) return;
+      try {
+        const res = await fetch(`/api/v1/jobs/${jobId}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete job');
+        if (activeJobId === jobId) {
+          activeJobId = null;
+          document.getElementById('clipsGrid').innerHTML = '<div class="empty-state"><p>Select a run to view clips.</p></div>';
+          document.getElementById('progressBox').classList.remove('active');
+        }
+        loadJobs();
+      } catch (err) {
+        alert('Could not delete run: ' + err.message);
+      }
+    }
+
+    async function fetchJobDetails(jobId) {
+      try {
+        const res = await fetch(`/api/v1/jobs/${jobId}`);
+        if (!res.ok) throw new Error(`Job details failed: ${res.status}`);
+        const job = await res.json();
+
+        // Update progress box
+        const pBox = document.getElementById('progressBox');
+        pBox.classList.add('active');
+        updateProgressUI(job.status, job.progress, job.current_step);
+
+        if (job.log_tail && job.log_tail.length > 0) {
+          document.getElementById('terminalLog').textContent = job.log_tail.join('\n');
+        }
+
+        renderClips(job.clips || []);
+      } catch (err) {
+        console.error("Failed fetching job details", err);
+      }
+    }
+
+    function renderClips(clips) {
+      const container = document.getElementById('clipsGrid');
+      currentClipsData = clips || [];
+      document.getElementById('clipsCount').textContent = currentClipsData.length;
+
+      if (!currentClipsData || currentClipsData.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><p>No clips available for this run.</p></div>';
+        return;
+      }
+
+      container.innerHTML = currentClipsData.map((c, idx) => {
+        const streamUrl = `/api/v1/clips/${c.id}/download?download=false`;
+        const downloadUrl = `/api/v1/clips/${c.id}/download?download=true`;
+
+        return `
+        <div class="clip-card">
+          <div class="clip-thumbnail" onclick="openClipModal(${idx})" title="Play Full Preview">
+            ${c.has_video ? `
+              <video preload="metadata" muted playsinline src="${streamUrl}"></video>
+              <div class="play-overlay-pill">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                </svg>
+              </div>
+            ` : `
+              <div style="color: var(--label-tertiary); text-align: center; padding: 1rem;">
+                <p>Rendering...</p>
+                <p style="font-size: 0.74rem;">${c.duration_sec.toFixed(1)}s</p>
+              </div>
+            `}
+            <div class="score-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              ${(c.score * 10).toFixed(1)}
+            </div>
+            <div class="duration-badge">${Math.round(c.duration_sec)}s</div>
+          </div>
+          <div class="clip-body">
+            <h4 class="clip-title">${escapeHtml(c.title || `Clip #${c.clip_index}`)}</h4>
+            <p class="clip-reason">${escapeHtml(c.reason || 'High engagement moment detected by AutoClip AI.')}</p>
+            ${c.has_video ? `
+              <div class="clip-actions">
+                <button type="button" class="btn-glass" style="flex: 1;" onclick="openClipModal(${idx})">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                  </svg>
+                  Preview
+                </button>
+                <a href="${downloadUrl}" download class="btn-glass btn-primary-glass" style="flex: 1;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Download
+                </a>
+              </div>
+            ` : `
+              <span class="btn-glass" style="opacity: 0.5; cursor: not-allowed; width: 100%;">
+                Rendering Clip...
+              </span>
+            `}
+          </div>
+        </div>
+        `;
+      }).join('');
+    }
+
+    function updateProgressUI(status, progress, step) {
+      const pct = Math.round((progress || 0) * 100);
+      document.getElementById('progressBar').style.width = `${pct}%`;
+      document.getElementById('progressPercent').textContent = `${pct}%`;
+      document.getElementById('progressStatusText').textContent = `Pipeline: ${status.toUpperCase()} ${step ? '— ' + step : ''}`;
+
+      const steps = ['download', 'transcribe', 'analyze', 'cut', 'produce'];
+      const activeIdx = {
+        'downloading': 0,
+        'transcribing': 1,
+        'analyzing': 2,
+        'cutting': 3,
+        'producing': 4,
+        'completed': 5
+      }[step] ?? -1;
+
+      steps.forEach((s, idx) => {
+        const el = document.getElementById(`step-${s}`);
+        if (!el) return;
+        el.classList.remove('active', 'completed');
+        if (idx < activeIdx) el.classList.add('completed');
+        else if (idx === activeIdx) el.classList.add('active');
+      });
+    }
+
+    function connectSSE(jobId) {
+      if (eventSource) {
+        eventSource.close();
+      }
+
+      eventSource = new EventSource(`/api/v1/jobs/${jobId}/events`);
+
+      eventSource.addEventListener('progress', (e) => {
+        const data = JSON.parse(e.data);
+        updateProgressUI('running', data.progress, data.step);
+        if (data.line) {
+          const term = document.getElementById('terminalLog');
+          term.textContent += '\n' + data.line;
+          term.scrollTop = term.scrollHeight;
+        }
+      });
+
+      eventSource.addEventListener('status', (e) => {
+        const data = JSON.parse(e.data);
+        updateProgressUI(data.status, data.progress, data.step);
+      });
+
+      eventSource.addEventListener('done', (e) => {
+        updateProgressUI('done', 1.0, 'completed');
+        fetchJobDetails(jobId);
+        loadJobs();
+        eventSource.close();
+      });
+
+      eventSource.addEventListener('failed', (e) => {
+        const data = JSON.parse(e.data);
+        updateProgressUI('failed', 0, 'error');
+        alert('Job failed: ' + (data.error || 'Unknown error'));
+        eventSource.close();
+      });
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+
+      const platforms = Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value);
+      const provider = document.getElementById('provider').value;
+      const category = document.getElementById('category').value;
+      const isUpload = document.getElementById('tabUpload').classList.contains('active');
+
+      try {
+        let job;
+        if (isUpload) {
+          if (!selectedFile) {
+            alert('Please select a video file to upload.');
+            submitBtn.disabled = false;
+            return;
+          }
+          const formData = new FormData();
+          formData.append('file', selectedFile);
+          formData.append('platforms', JSON.stringify(platforms));
+          formData.append('provider', provider);
+          formData.append('category', category);
+
+          const res = await fetch('/api/v1/jobs/upload', {
+            method: 'POST',
+            body: formData,
+          });
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || `Upload failed with status ${res.status}`);
+          }
+          job = await res.json();
+        } else {
+          const url = document.getElementById('videoUrl').value.trim();
+          if (!url) {
+            alert('Please enter a video URL.');
+            submitBtn.disabled = false;
+            return;
+          }
+          const res = await fetch('/api/v1/jobs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              source: url,
+              platforms: platforms,
+              provider: provider,
+              category: category,
+            }),
+          });
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || `Job creation failed with status ${res.status}`);
+          }
+          job = await res.json();
+        }
+
+        activeJobId = job.id;
+        document.getElementById('progressBox').classList.add('active');
+        document.getElementById('terminalLog').textContent = "Starting AutoClip viral processing...";
+        connectSSE(job.id);
+        loadJobs();
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    }
+
+    // =========================================================================
+    // Mem0 AI Creator Memory Handlers
+    // =========================================================================
+    let memorySearchTimer = null;
+    let memorySectionOpen = true;
+
+    function toggleMemorySection() {
+      memorySectionOpen = !memorySectionOpen;
+      const body = document.getElementById('memoryBody');
+      const btn = document.getElementById('memToggleBtn');
+      body.style.display = memorySectionOpen ? 'block' : 'none';
+      btn.textContent = memorySectionOpen ? 'Collapse' : 'Expand';
+    }
+
+    async function loadMemories(query = '') {
+      const container = document.getElementById('memoryListContainer');
+      const badge = document.getElementById('memCountPill');
+      try {
+        const url = query && query.trim() 
+          ? `/api/v1/memories?q=${encodeURIComponent(query.trim())}` 
+          : `/api/v1/memories`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Memory fetch error: ${res.status}`);
+        const data = await res.json();
+        const items = data.memories || [];
+        badge.textContent = `${items.length} ${items.length === 1 ? 'Memory' : 'Memories'}`;
+
+        if (items.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 1.5rem; color: var(--label-tertiary); font-size: 0.8rem;">
+              ${query ? `No memories found matching "${escapeHtml(query)}"` : 'No memories stored yet. Add a preference above!'}
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = items.map(m => {
+          const text = m.memory || m.content || '';
+          const id = m.id || '';
+          const score = m.score ? `<span style="font-size: 0.68rem; color: var(--system-green); background: rgba(50, 215, 75, 0.12); padding: 2px 6px; border-radius: 4px; font-weight: 600;">Match ${(m.score * 100).toFixed(0)}%</span>` : '';
+          const cat = m.metadata?.category || m.category || 'general';
+          const isSeed = m.metadata?.system_seed ? '<span style="font-size: 0.66rem; color: var(--system-indigo); background: rgba(94, 92, 230, 0.12); padding: 1px 5px; border-radius: 4px;">SYSTEM</span>' : '';
+
+          return `
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; padding: 0.65rem 0.85rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: var(--radius-sm); transition: all 0.2s var(--ease-apple);">
+              <div style="display: flex; flex-direction: column; gap: 0.25rem; flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.45rem;">
+                  <span style="font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--system-blue); font-weight: 700; background: rgba(10, 132, 255, 0.1); padding: 1px 6px; border-radius: 4px;">#${escapeHtml(cat)}</span>
+                  ${isSeed}
+                  ${score}
+                </div>
+                <div style="font-size: 0.82rem; color: var(--label-primary); line-height: 1.4;">${escapeHtml(text)}</div>
+              </div>
+              <button class="btn-delete-run" title="Delete memory" onclick="deleteMemory('${id}')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18"/>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                </svg>
+              </button>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error("Mem0 load error:", err);
+        container.innerHTML = `<div style="text-align: center; color: var(--system-red); padding: 1rem; font-size: 0.8rem;">Could not load memories: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function debounceMemorySearch(query) {
+      clearTimeout(memorySearchTimer);
+      memorySearchTimer = setTimeout(() => {
+        loadMemories(query);
+      }, 300);
+    }
+
+    async function submitNewMemory() {
+      const input = document.getElementById('newMemoryInput');
+      const cat = document.getElementById('newMemoryCategory').value;
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.disabled = true;
+      try {
+        const res = await fetch('/api/v1/memories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text, category: cat })
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || `Error ${res.status}`);
+        }
+        input.value = '';
+        loadMemories();
+      } catch (err) {
+        alert("Failed to save memory: " + err.message);
+      } finally {
+        input.disabled = false;
+      }
+    }
+
+    async function quickAddMemory(text) {
+      try {
+        const res = await fetch('/api/v1/memories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text, category: 'rule' })
+        });
+        if (!res.ok) throw new Error('Failed to add preset memory');
+        loadMemories();
+      } catch (err) {
+        alert("Error adding memory: " + err.message);
+      }
+    }
+
+    async function deleteMemory(id) {
+      if (!id) return;
+      if (!confirm('Remove this preference from Mem0 memory?')) return;
+      try {
+        const res = await fetch(`/api/v1/memories/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Could not delete memory');
+        loadMemories();
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+
+    async function showMemoryPromptContext() {
+      try {
+        const res = await fetch('/api/v1/memories/context');
+        const data = await res.json();
+        const ctx = data.prompt_context || 'No active memories compiled into prompt context yet.';
+        alert("Current Mem0 Context Injected into Gemini Prompts:\n\n" + ctx);
+      } catch (err) {
+        alert("Could not retrieve prompt context: " + err.message);
+      }
+    }
+
+    // Initialize
+    checkHealth();
+    loadJobs();
+    loadMemories();
+    setInterval(loadJobs, 10000);
+  </script>
+</body>
+</html>

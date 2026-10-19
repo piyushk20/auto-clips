@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Venvs — project venv only; AutoClip venv is outside the repo
+.venv/
+
+# Secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Outputs — video files, clips, ZIPs generated at runtime
+outputs/
+*.mp4
+*.mkv
+*.webm
+*.zip
+*.srt
+!tests/fixtures/*.srt
+!tests/fixtures/*.mp4
+
+# DB
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
