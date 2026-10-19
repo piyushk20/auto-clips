@@ -16,6 +16,15 @@ client = TestClient(app)
 def setup_db():
     Base.metadata.create_all(bind=engine)
     yield
+    from app.database import SessionLocal
+    from app.models.job import Job
+    with SessionLocal() as db:
+        test_jobs = db.query(Job).filter(
+            (Job.source.ilike("%sample%")) | (Job.source.ilike("%dQw4w9WgXcQ%"))
+        ).all()
+        for j in test_jobs:
+            db.delete(j)
+        db.commit()
 
 
 def test_health_endpoint():

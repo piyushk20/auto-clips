@@ -93,13 +93,31 @@ def list_platforms() -> dict:
 
 @router.get("/jobs")
 def list_jobs(
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    only_with_clips: bool = Query(True),
     db: Session = Depends(get_db),
 ) -> dict:
-    """List recent video jobs ordered newest first."""
-    stmt = select(Job).order_by(desc(Job.created_at)).offset(offset).limit(limit)
+    """List video jobs. By default only returns jobs with created clips or active in-progress runs."""
+    stmt = select(Job)
+    if only_with_clips:
+        # Exclude failed and cancelled jobs that have no clips
+        stmt = stmt.where(
+            (Job.clips.any()) | (Job.status.in_(["pending", "running"]))
+        ).where(
+            ~Job.source.ilike("%watch?v=sample%")
+        )
+    stmt = stmt.order_by(desc(Job.created_at)).offset(offset).limit(limit)
     jobs = db.execute(stmt).scalars().all()
+
+    if only_with_clips:
+        # Strict memory-safe filter: only keep runs with clips or active in-progress runs, exclude dummy test runs
+        jobs = [
+            j for j in jobs 
+            if (len(j.clips) > 0 or j.status in ("pending", "running")) 
+            and "sample" not in j.source.lower()
+        ]
+
     return {
         "jobs": [j.to_dict() for j in jobs],
         "count": len(jobs),

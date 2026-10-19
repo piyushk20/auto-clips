@@ -1424,29 +1424,39 @@
 
     async function loadJobs() {
       try {
-        const res = await fetch('/api/v1/jobs');
+        const res = await fetch('/api/v1/jobs?only_with_clips=true');
         const data = await res.json();
         const list = document.getElementById('historyList');
-        if (!data.jobs || data.jobs.length === 0) {
-          list.innerHTML = '<div class="empty-state"><p>No runs recorded.</p></div>';
+
+        // Strictly filter: only show jobs where clips were created OR actively in progress
+        const validJobs = (data.jobs || []).filter(j => j.clip_count > 0 || j.status === 'running' || j.status === 'pending');
+
+        if (!validJobs || validJobs.length === 0) {
+          list.innerHTML = '<div class="empty-state"><p>No completed runs with clips yet.</p></div>';
           return;
         }
 
         // Auto-select the most recent completed job with clips if none selected yet
         if (!activeJobId) {
-          const runWithClips = data.jobs.find(j => j.clip_count > 0 && j.status === 'done') || data.jobs[0];
+          const runWithClips = validJobs.find(j => j.clip_count > 0) || validJobs[0];
           if (runWithClips) {
             activeJobId = runWithClips.id;
             fetchJobDetails(runWithClips.id);
           }
         }
 
-        list.innerHTML = data.jobs.map(j => `
+        list.innerHTML = validJobs.map(j => {
+          const title = escapeHtml(j.display_title || j.source.split(/[\\/]/).pop());
+          const dateStr = new Date(j.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' });
+          const timeStr = new Date(j.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const clipsLabel = j.clip_count > 0 ? `${j.clip_count} ${j.clip_count === 1 ? 'clip' : 'clips'}` : `${(j.progress * 100).toFixed(0)}% in progress`;
+
+          return `
           <div class="history-item ${j.id === activeJobId ? 'active' : ''}" onclick="selectJob('${j.id}')">
             <div class="history-top">
               <span class="status-pill status-${j.status}">${j.status}</span>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="color: var(--label-tertiary); font-size: 0.74rem;">${new Date(j.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                <span style="color: var(--label-tertiary); font-size: 0.74rem;">${dateStr} ${timeStr}</span>
                 <button class="btn-delete-run" title="Delete run" onclick="event.stopPropagation(); deleteJob('${j.id}')">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 6h18"/>
@@ -1456,13 +1466,14 @@
                 </button>
               </div>
             </div>
-            <div class="history-source">${j.source.split(/[\\\\/]/).pop()}</div>
+            <div class="history-source" title="${title}">${title}</div>
             <div class="history-meta">
-              <span>${j.clip_count} viral clips</span>
-              <span>${(j.progress * 100).toFixed(0)}%</span>
+              <span style="color: var(--system-green); font-weight: 600;">⚡ ${clipsLabel}</span>
+              <span style="color: var(--label-tertiary);">${(j.progress * 100).toFixed(0)}%</span>
             </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
       } catch (err) {
         console.error("Failed to load jobs", err);
       }

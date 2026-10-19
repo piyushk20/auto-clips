@@ -72,10 +72,22 @@ class Job(Base):
     def set_log_tail(self, lines: list[str]) -> None:
         self.log_tail_json = json.dumps(lines[-50:])
 
+    @property
+    def display_title(self) -> str:
+        """Return a clean, readable title for the run."""
+        if self.clips:
+            first_title = next((c.title for c in self.clips if c.title), None)
+            if first_title:
+                return first_title
+        # Fallback to source
+        clean = self.source.split("?")[0].rstrip("/").split("/")[-1]
+        return clean or self.source
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
             "source": self.source,
+            "display_title": self.display_title,
             "platforms": self.platforms,
             "provider": self.provider,
             "category": self.category,
