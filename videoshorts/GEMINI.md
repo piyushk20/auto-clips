@@ -43,9 +43,9 @@
 
 ## VideoShorts — Verified Stable State
 - **Workspace**: `c:\Users\HP\Auto-clips\videoshorts`
-- **Server Launch**: `& "c:\Users\HP\Auto-clips\videoshorts\.venv\Scripts\python.exe" -m uvicorn app.main:app --host 127.0.0.1 --port 8000`
-- **Port**: 8000 (FastAPI API + static & dynamic UI + SSE streaming)
-- **Health Check**: `http://127.0.0.1:8000/api/v1/health`
-- **Dashboard UI**: `http://127.0.0.1:8000/`
-- **Test Command**: `& "c:\Users\HP\Auto-clips\videoshorts\.venv\Scripts\pytest.exe" -v` (11/11 tests passing)
+- **Server Launch**: `& "c:\Users\HP\Auto-clips\videoshorts\.venv\Scripts\python.exe" -m uvicorn app.main:app --host 127.0.0.1 --port 6400`
+- **Port**: 6400 (FastAPI API + static & dynamic UI + SSE streaming)
+- **Health Check**: `http://127.0.0.1:6400/api/v1/health`
+- **Dashboard UI**: `http://127.0.0.1:6400/`
+- **Test Command**: `& "c:\Users\HP\Auto-clips\videoshorts\.venv\Scripts\pytest.exe" -v` (18/18 tests passing)
 

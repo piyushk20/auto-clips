@@ -82,6 +82,10 @@ app.add_middleware(
     allow_origins=[
         "http://127.0.0.1:8000",
         "http://localhost:8000",
+        "http://127.0.0.1:6400",
+        "http://localhost:6400",
+        f"http://127.0.0.1:{settings.port}",
+        f"http://localhost:{settings.port}",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
